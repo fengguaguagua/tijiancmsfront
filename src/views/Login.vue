@@ -1,0 +1,9 @@
+<template><main class="login-page"><section class="login-intro"><div class="brand"><span class="brand-symbol">+</span><b>熙心健康</b></div><p class="eyebrow">HEALTHCARE WORKSPACE</p><h1>每一次记录<br>都关乎健康。</h1><p>体检预约、检查结果与总检报告，<br>在一个工作台有序完成。</p><div class="intro-line">预约管理 / 结果录入 / 报告归档</div></section><section class="login-panel"><span class="mode-badge">{{isMock?'课堂演示 · 模拟数据':backendLabel}}</span><h2>登录医生工作台</h2><p class="muted">使用医生编码继续</p><form @submit.prevent="submit"><label for="code">医生编码</label><el-input id="code" v-model="form.docCode" autocomplete="username" placeholder="请输入医生编码"/><label for="password">登录密码</label><el-input id="password" v-model="form.password" type="password" autocomplete="current-password" show-password placeholder="请输入密码"/><el-alert v-if="error" :title="error" type="error" :closable="false" class="spaced"/><el-button type="primary" native-type="submit" :loading="busy" class="login-submit">登录工作台</el-button></form><div v-if="isMock" class="demo-hint">演示账号 <b>zzj</b>　密码 <b>123</b><br>模拟数据重启服务后恢复。</div></section></main></template>
+<script setup>
+import {ref,reactive} from 'vue'
+import {useRouter,useRoute} from 'vue-router'
+import {api,isMock} from '../api'
+const backendLabel = process.env.VUE_APP_ENV_LABEL || '后端服务 · 联机模式'
+const router=useRouter(),route=useRoute(),form=reactive({docCode:'',password:''}),error=ref(''),busy=ref(false)
+async function submit(){error.value='';if(!form.docCode.trim()||!form.password){error.value='请填写医生编码和密码';return}busy.value=true;try{const d=await api.doctorLogin({...form,docCode:form.docCode.trim()});sessionStorage.setItem('doctor',JSON.stringify(d));const target=String(route.query.redirect||'');await router.replace(target.startsWith('/')&&!target.startsWith('//')&&!target.startsWith('/login')?target:'/ordersList')}catch(e){error.value=e.message}finally{busy.value=false}}
+</script>
